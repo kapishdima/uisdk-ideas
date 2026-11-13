@@ -1,26 +1,521 @@
+@layer ui-sdk;
 @import "tailwindcss";
 
+/*
+ * Design tokens — mirrored from the Doop canvas "ui-sdk ideas — showcase".
+ * Drafting-table gray ground, white sheets with a hairline ring, one signal
+ * accent for everything the agent does. Light only, like the AlignUI reference.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --ground: #f7f7f7;
+  --sheet: #ffffff;
+  --well: #f5f5f5;
+  --ink: #171717;
+  --graphite: #5c5c5c;
+  --pencil: #a3a3a3;
+  --hairline: #ebebeb;
+  --signal: #f04e1f;
+  --signal-soft: #fdede8;
+  --signal-ring: rgb(240 78 31 / 0.42);
+  --live: #1fc16b;
+  --live-ink: #13824a;
+  --live-soft: #e8f8ef;
+  --danger: #d92d20;
+
+  --shadow-sheet:
+    0 0 0 1px var(--hairline), 0 1px 2px rgb(10 13 20 / 0.03),
+    0 4px 8px -2px rgb(10 13 20 / 0.04), 0 16px 32px -12px rgb(10 13 20 / 0.06);
+  --shadow-sheet-hover:
+    0 0 0 1px #dcdcdc, 0 1px 2px rgb(10 13 20 / 0.04), 0 8px 16px -4px rgb(10 13 20 / 0.06),
+    0 24px 48px -16px rgb(10 13 20 / 0.1);
+  --shadow-control: 0 0 0 1px var(--hairline), 0 1px 2px rgb(10 13 20 / 0.04);
+  --shadow-field: inset 0 0 0 1px var(--hairline), 0 1px 2px rgb(10 13 20 / 0.03);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-ground: var(--ground);
+  --color-sheet: var(--sheet);
+  --color-well: var(--well);
+  --color-ink: var(--ink);
+  --color-graphite: var(--graphite);
+  --color-pencil: var(--pencil);
+  --color-hairline: var(--hairline);
+  --color-signal: var(--signal);
+  --color-signal-soft: var(--signal-soft);
+  --color-live: var(--live);
+  --color-live-ink: var(--live-ink);
+  --color-live-soft: var(--live-soft);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --shadow-sheet: var(--shadow-sheet);
+  --shadow-sheet-hover: var(--shadow-sheet-hover);
+  --shadow-control: var(--shadow-control);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ground);
+  color: var(--ink);
+  font-feature-settings: "cv11", "ss01";
+}
+
+::selection {
+  background: var(--signal-soft);
+  color: var(--ink);
+}
+
+/* Thin scrollbars with no track: a faint thumb that darkens while you hover the area. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(10 13 20 / 0.14) transparent;
+}
+
+*:hover {
+  scrollbar-color: rgb(10 13 20 / 0.26) transparent;
+}
+
+/* ---------------------------------------------------------------------------
+ * ui-sdk parts. Components ship unstyled; everything below targets their
+ * data-slot and state attributes, the way a shadcn-style registry would.
+ * ------------------------------------------------------------------------- */
+
+@layer components {
+  [data-slot="field"] {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  [data-slot="field-label"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  [data-slot="field-description"] {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--graphite);
+  }
+
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"],
+  [data-slot="date-picker-input"],
+  [data-slot="number-input-group"] {
+    width: 100%;
+    min-height: 40px;
+    border-radius: 10px;
+    background: var(--sheet);
+    box-shadow: var(--shadow-field);
+    padding: 0 12px;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition:
+      box-shadow 120ms,
+      background-color 300ms;
+  }
+
+  [data-slot="textarea"] {
+    padding: 10px 12px;
+    min-height: 76px;
+    resize: vertical;
+  }
+
+  [data-slot="input"]::placeholder,
+  [data-slot="textarea"]::placeholder,
+  [data-slot="date-picker-input"]::placeholder {
+    color: var(--pencil);
+  }
+
+  [data-slot="input"]:hover,
+  [data-slot="textarea"]:hover,
+  [data-slot="select-trigger"]:hover,
+  [data-slot="date-picker-input"]:hover,
+  [data-slot="number-input-group"]:hover {
+    box-shadow:
+      inset 0 0 0 1px #dcdcdc,
+      0 1px 2px rgb(10 13 20 / 0.03);
+  }
+
+  [data-slot="input"]:focus-visible,
+  [data-slot="textarea"]:focus-visible,
+  [data-slot="select-trigger"]:focus-visible,
+  [data-slot="date-picker-input"]:focus-visible,
+  [data-slot="number-input-group"]:focus-within {
+    box-shadow:
+      inset 0 0 0 1px var(--ink),
+      0 0 0 4px rgb(23 23 23 / 0.06);
+  }
+
+  [data-slot="select-trigger"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    text-align: left;
+    cursor: default;
+  }
+
+  [data-slot="select-value"][data-placeholder] {
+    color: var(--pencil);
+  }
+
+  [data-slot="select-content"],
+  [data-slot="date-picker-content"],
+  [data-slot="trigger-menu-content"] {
+    z-index: 50;
+    border-radius: 12px;
+    background: var(--sheet);
+    padding: 4px;
+    box-shadow:
+      0 0 0 1px var(--hairline),
+      0 16px 32px -12px rgb(10 13 20 / 0.18),
+      0 4px 8px -4px rgb(10 13 20 / 0.06);
+    transform-origin: var(--transform-origin);
+    transition:
+      opacity 120ms,
+      scale 120ms;
+  }
+
+  [data-slot="select-content"],
+  [data-slot="trigger-menu-content"] {
+    min-width: var(--anchor-width);
+    max-height: min(18rem, var(--available-height));
+    overflow-y: auto;
+  }
+
+  [data-slot="select-content"][data-starting-style],
+  [data-slot="select-content"][data-ending-style],
+  [data-slot="date-picker-content"][data-starting-style],
+  [data-slot="date-picker-content"][data-ending-style],
+  [data-slot="trigger-menu-content"][data-starting-style],
+  [data-slot="trigger-menu-content"][data-ending-style] {
+    opacity: 0;
+    scale: 0.97;
+  }
+
+  [data-slot="select-item"],
+  [data-slot="trigger-menu-item"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-radius: 8px;
+    padding: 7px 8px;
+    font-size: 13px;
+    cursor: default;
+    outline: none;
+  }
+
+  [data-slot="select-item"][data-highlighted],
+  [data-slot="trigger-menu-item"][data-highlighted] {
+    background: var(--well);
+  }
+
+  [data-slot="trigger-menu-empty"] {
+    padding: 7px 8px;
+    font-size: 13px;
+    color: var(--pencil);
+  }
+
+  [data-slot="trigger-menu-empty"]:empty {
+    display: none;
+  }
+
+  [data-slot="number-input-group"] {
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+
+  [data-slot="number-input-control"] {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    background: transparent;
+    outline: none;
+    font-family: var(--font-geist-mono);
+    font-size: 13px;
+  }
+
+  [data-slot="switch"] {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 32px;
+    height: 18px;
+    border-radius: 999px;
+    background: #e2e2e2;
+    padding: 2px;
+    transition: background-color 150ms;
+  }
+
+  [data-slot="switch"][data-checked] {
+    background: var(--ink);
+  }
+
+  [data-slot="switch-thumb"] {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: white;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+    transition: translate 150ms;
+  }
+
+  [data-slot="switch-thumb"][data-checked] {
+    translate: 14px 0;
+  }
+
+  [data-slot="date-picker-row"] {
+    position: relative;
+    display: flex;
+  }
+
+  [data-slot="date-picker-row"] [data-slot="date-picker-input"] {
+    padding-right: 40px;
+  }
+
+  [data-slot="date-picker-trigger"] {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: var(--graphite);
+  }
+
+  [data-slot="date-picker-trigger"]:hover {
+    background: var(--well);
+  }
+
+  [data-slot="date-picker-content"] {
+    padding: 12px;
+  }
+
+  [data-slot="calendar-header"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  [data-slot="calendar-previous"],
+  [data-slot="calendar-next"] {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: var(--graphite);
+  }
+
+  [data-slot="calendar-previous"]:hover,
+  [data-slot="calendar-next"]:hover {
+    background: var(--well);
+  }
+
+  [data-slot="calendar-grid"] {
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  [data-slot="calendar-weekday"] {
+    width: 36px;
+    height: 28px;
+    font-weight: 400;
+    color: var(--pencil);
+  }
+
+  [data-slot="calendar-day"] {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: default;
+    outline: none;
+  }
+
+  [data-slot="calendar-day"]:hover,
+  [data-slot="calendar-day"]:focus-visible {
+    background: var(--well);
+  }
+
+  [data-slot="calendar-day"][data-outside] {
+    color: var(--pencil);
+  }
+
+  [data-slot="calendar-day"][data-today] {
+    font-weight: 600;
+  }
+
+  [data-slot="calendar-day"][data-selected] {
+    background: var(--ink);
+    color: white;
+  }
+
+  [data-slot="collapsible-panel"] {
+    overflow: hidden;
+  }
+
+  /* What the agent changed: the signal tint on the control, a dot after its label. */
+  [data-agent-touched] {
+    background-color: var(--signal-soft) !important;
+    box-shadow: inset 0 0 0 1px var(--signal-ring) !important;
+  }
+
+  [data-agent-touched][data-slot="switch"][data-checked] {
+    background-color: var(--signal) !important;
+    box-shadow: none !important;
+  }
+
+  [data-slot="field"]:has([data-agent-touched]) [data-slot="field-label"]::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--signal);
+  }
+
+  /* A step on this field failed: red ring, the message under it. */
+  [data-agent-error] :is(
+      [data-slot="input"],
+      [data-slot="textarea"],
+      [data-slot="select-trigger"],
+      [data-slot="date-picker-input"],
+      [data-slot="number-input-group"]
+    ) {
+    background-color: var(--sheet) !important;
+    box-shadow:
+      inset 0 0 0 1px var(--danger),
+      0 0 0 4px rgb(217 45 32 / 0.08) !important;
+  }
+
+  [data-agent-error]::after,
+  [data-agent-note]::after {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  [data-agent-error]::after {
+    content: attr(data-agent-error);
+    color: var(--danger);
+  }
+
+  [data-agent-note]::after {
+    content: attr(data-agent-note);
+    color: var(--graphite);
+  }
+
+  /* After /snapshot: the ref the agent reads each component by. */
+  [data-agent-ref],
+  [data-agent-mentioned] {
+    position: relative;
+  }
+
+  [data-agent-ref]::before {
+    content: attr(data-agent-ref);
+    position: absolute;
+    top: -2px;
+    right: 0;
+    z-index: 1;
+    border-radius: 4px;
+    background: var(--well);
+    box-shadow: inset 0 0 0 1px var(--hairline);
+    padding: 1px 5px;
+    font-family: var(--font-geist-mono);
+    font-size: 10px;
+    color: var(--graphite);
+  }
+
+  button[data-agent-ref]::before {
+    top: -10px;
+    right: -6px;
+  }
+
+  /* The person is mentioning this control with @. */
+  [data-agent-mentioned] {
+    outline: 2px dashed rgb(240 78 31 / 0.5);
+    outline-offset: 4px;
+    border-radius: 12px;
+  }
+
+  [data-agent-mentioned]::before {
+    content: attr(data-agent-mentioned);
+    position: absolute;
+    top: -2px;
+    right: 0;
+    border-radius: 5px;
+    background: var(--signal-soft);
+    padding: 2px 6px;
+    font-family: var(--font-geist-mono);
+    font-size: 10.5px;
+    color: var(--signal);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: -50% 8px;
+  }
+  to {
+    opacity: 1;
+    translate: -50% 0;
+  }
+}
+
+.toast-rise {
+  animation: rise 180ms ease-out both;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+.dot-grid {
+  background-image: radial-gradient(#e3e3e3 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Text with a light sweeping across it, for "Thinking…". */
+.shimmer-text {
+  background: linear-gradient(90deg, var(--pencil) 0%, var(--pencil) 40%, var(--ink) 50%, var(--pencil) 60%, var(--pencil) 100%);
+  background-size: 250% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
 }
