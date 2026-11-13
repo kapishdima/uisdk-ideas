@@ -1,0 +1,1 @@
+ui-sdk ideas: Ideas for interfaces agents can operate. An agent fills a bill form, its tool calls snapshot, query and act are listed, and it waits for approval before pressing Submit bill.
